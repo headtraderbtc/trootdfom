@@ -1,10 +1,12 @@
 const { Pool } = require('pg');
 
+const isRailway = process.env.DATABASE_URL && process.env.DATABASE_URL.includes('railway');
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL && process.env.DATABASE_URL.includes('railway')
+  ssl: isRailway
     ? { rejectUnauthorized: false }
-    : false
+    : undefined
 });
 
 module.exports = pool;
