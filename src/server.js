@@ -5,6 +5,7 @@
    ============================================================ */
 
 require('dotenv').config();
+console.log('[debug] DATABASE_URL =', process.env.DATABASE_URL);
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
