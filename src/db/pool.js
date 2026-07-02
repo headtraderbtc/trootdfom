@@ -1,11 +1,8 @@
 const { Pool } = require('pg');
 
+// Railway automatically injects these when services are linked
 const pool = new Pool({
-  user: process.env.PGUSER || 'postgres',
-  host: process.env.PGHOST,
-  database: process.env.PGDATABASE || 'railway',
-  password: process.env.PGPASSWORD,
-  port: process.env.PGPORT || 5432,
+  connectionString: process.env.DATABASE_URL,
   ssl: {
     rejectUnauthorized: false
   }
