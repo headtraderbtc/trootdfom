@@ -116,8 +116,19 @@
     ]
   };
 
+  // Look for the planet definition in your universe file
   var p = UNIVERSE.PLANETS.filter(function(x){ return x.id === PLANET_ID; })[0];
-  if (!p) { return; }
+
+// FALLBACK SAFEGUARD: If it's not found in universe.js, inject default styles so it doesn't crash!
+  if (!p) { 
+    p = {
+      id: "knowledge",
+      name: "Knowledge Planet",
+      desc: "The Order's living encyclopedia",
+      color: "#6a0dad", // Regal deep purple
+      glow: "#a06edc"   // Bright lavender glow
+    };
+  }
 
   var moons     = MOON_DATA[PLANET_ID] || [];
   var angles    = moons.map(function(m){ return m.angle; });
