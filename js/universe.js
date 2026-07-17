@@ -5,6 +5,9 @@
 
 (function(UNIVERSE) {
 
+  // 🌍 REPLACE THIS LINK WITH YOUR LIVE RAILWAY BACKEND LINK (No trailing slash)
+  var BACKEND_URL = "https://trotdfm-backend-production.up.railway.app/"; 
+
   /* ---------- DATA ---------- */
   UNIVERSE.MEMBERS = [
     { id:"m1", name:"Archon",  role:"Founder",    color:"#a06de0", initials:"AR" },
@@ -13,72 +16,8 @@
     { id:"m4", name:"Oryn",    role:"Archivist",  color:"#4de0b0", initials:"OY" }
   ];
 
-  UNIVERSE.PLANETS = [
-    {
-      id:"heritage", name:"Heritage",
-      desc:"Genealogy, ancestry & civil records",
-      color:"#7b5ea7", glow:"#a07fd0",
-      angle:25,  orbitR:115,
-      contributors:["m1","m4"],
-      lastActivity: daysAgo(3),
-      subUrl:"heritage/index.html",
-      subProjects: [
-        { name: "Inventory HUD", url: "/projects/hud" },
-        { name: "Supply Crates", url: "/projects/crates" },      ]
-    },
-    {
-      id:"knowledge", name:"Knowledge",
-      desc:"Wiki, library & doctrine",
-      color:"#3a7abf", glow:"#5da0e8",
-      angle:100, orbitR:152,
-      contributors:["m1","m2","m4"],
-      lastActivity: daysAgo(1),
-      subUrl:"knowledge/index.html",
-      subProjects: [
-        { name: "Inventory HUD", url: "/projects/hud" },
-        { name: "Supply Crates", url: "/projects/crates" }
-      ]
-    },
-    {
-      id:"games", name:"Games",
-      desc:"ZeroDominus, chess & strategy",
-      color:"#bf5a3a", glow:"#e07850",
-      angle:185, orbitR:132,
-      contributors:["m1","m3"],
-      lastActivity: daysAgo(12),
-      subUrl:"games/index.html",
-      subProjects: [
-        { name: "Inventory HUD", url: "/projects/hud" },
-        { name: "Supply Crates", url: "/projects/crates" }
-      ]
-    },
-    {
-      id:"research", name:"Research",
-      desc:"AI, consciousness & philosophy",
-      color:"#3a9e7a", glow:"#55c99a",
-      angle:265, orbitR:168,
-      contributors:["m2","m3"],
-      lastActivity: daysAgo(7),
-      subUrl:"research/index.html",
-      subProjects: [
-        { name: "Inventory HUD", url: "/projects/hud" },
-        { name: "Supply Crates", url: "/projects/crates" }
-      ]
-    },
-    {
-      id:"education", name:"Education",
-      desc:"Learning systems & curriculum",
-      color:"#888070", glow:"#aaa090",
-      angle:335, orbitR:108,
-      contributors:["m4"],
-      lastActivity: daysAgo(45),
-      subUrl:"education/index.html", 
-      subProjects: [
-        { name: "Inventory HUD", url: "/projects/hud" },
-        { name: "Supply Crates", url: "/projects/crates" }
-      ]
-    }
-  ];
+  // This will get overwritten automatically when data arrives from Supabase!
+  UNIVERSE.PLANETS = []; 
 
   function daysAgo(n) {
     var d = new Date();
@@ -86,61 +25,57 @@
     return d;
   }
 
-  /* ---------- DATA STORE ----------
-     Placeholder persistence using localStorage so the site is fully
-     functional with no backend. Swap these functions out for real
-     API calls (PHP/Node/database) when you add a server.
-  ---------------------------------- */
-  var STORE_KEYS = {
-    MEMBERS: "trotdfm_members",
-    COMETS:  "trotdfm_comets"
+  /* ---------- REAL DATABASE API CALLS ---------- */
+  
+  // 1. Fetch live planets data from your backend
+  UNIVERSE.loadPlanetsFromServer = function(callback) {
+    fetch(BACKEND_URL + '/api/planets')
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        // Map backend dates back into true JS Date objects for your physics loop
+        UNIVERSE.PLANETS = data.map(function(p) {
+          p.lastActivity = new Date(p.lastActivity);
+          return p;
+        });
+        if (callback) callback(UNIVERSE.PLANETS);
+      })
+      .catch(function(err) { console.error("Error loading planets:", err); });
   };
 
-  function readStore(key) {
-    try {
-      var raw = localStorage.getItem(key);
-      return raw ? JSON.parse(raw) : [];
-    } catch(e) { return []; }
-  }
-  function writeStore(key, arr) {
-    try { localStorage.setItem(key, JSON.stringify(arr)); } catch(e) {}
-  }
-
-  UNIVERSE.getPendingMembers = function() { return readStore(STORE_KEYS.MEMBERS); };
-  UNIVERSE.addPendingMember = function(member) {
-    var list = readStore(STORE_KEYS.MEMBERS);
-    member.id = "applicant_" + Date.now();
-    member.status = "pending";
-    member.submittedAt = new Date().toISOString();
-    list.push(member);
-    writeStore(STORE_KEYS.MEMBERS, list);
-    return member;
-  };
-  UNIVERSE.updateMemberStatus = function(id, status) {
-    var list = readStore(STORE_KEYS.MEMBERS);
-    list = list.map(function(m){ if (m.id === id) m.status = status; return m; });
-    writeStore(STORE_KEYS.MEMBERS, list);
-  };
-
-  UNIVERSE.getComets = function() { return readStore(STORE_KEYS.COMETS); };
+  // 2. Fetch live comets currently in orbit
   UNIVERSE.getApprovedComets = function() {
-    return readStore(STORE_KEYS.COMETS).filter(function(c){ return c.status === "approved"; });
+    return fetch(BACKEND_URL + '/api/comets/approved')
+      .then(function(res) { return res.json(); })
+      .catch(function(err) { 
+        console.error("Error loading comets:", err); 
+        return [];
+      });
   };
+
+  // 3. Submit a new join application
+  UNIVERSE.addPendingMember = function(member) {
+    return fetch(BACKEND_URL + '/api/members/apply', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(member)
+    })
+    .then(function(res) {
+      if (!res.ok) throw new Error("Registration submission failed");
+      return res.json();
+    });
+  };
+
+  // 4. Submit a new world comet proposal
   UNIVERSE.addComet = function(comet) {
-    var list = readStore(STORE_KEYS.COMETS);
-    comet.id = "comet_" + Date.now();
-    comet.status = "pending";
-    comet.submittedAt = new Date().toISOString();
-    comet.angle = Math.floor(Math.random() * 360);
-    comet.orbitR = 220 + Math.floor(Math.random() * 60);
-    list.push(comet);
-    writeStore(STORE_KEYS.COMETS, list);
-    return comet;
-  };
-  UNIVERSE.updateCometStatus = function(id, status) {
-    var list = readStore(STORE_KEYS.COMETS);
-    list = list.map(function(c){ if (c.id === id) c.status = status; return c; });
-    writeStore(STORE_KEYS.COMETS, list);
+    return fetch(BACKEND_URL + '/api/comets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(comet)
+    })
+    .then(function(res) {
+      if (!res.ok) throw new Error("Comet submission failed");
+      return res.json();
+    });
   };
 
   /* ---------- PLANET SIZE (Eye formula — activity-based) ---------- */
