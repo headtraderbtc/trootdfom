@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Join the Order — TROTDFM</title>
+  <link rel="stylesheet" href="../css/universe.css">
+</head>
+<body class="page-scrollable">
+
+<a href="../index.html" id="subpage-back">&#8592; &nbsp; The Order</a>
+
+<canvas id="star-canvas"></canvas>
+
+<div class="form-shell">
+  <div class="form-eyebrow">The Royal Order</div>
+  <div class="form-title">Join the Order</div>
+  <div class="form-sub">
+    Membership grants you the ability to contribute to existing worlds<br>
+    and propose new ones. Applications are reviewed by the Order.
+  </div>
+
+  <form id="join-form">
+    <div class="form-field">
+      <label for="j-name">Name</label>
+      <input type="text" id="j-name" required placeholder="Your name or chosen alias">
+    </div>
+    <div class="form-field">
+      <label for="j-email">Email</label>
+      <input type="email" id="j-email" required placeholder="you@example.com">
+    </div>
+    <div class="form-field">
+      <label for="j-interest">What draws you to the Order?</label>
+      <textarea id="j-interest" required placeholder="A few sentences on what interests you — heritage, research, games, knowledge, or something of your own."></textarea>
+      <div class="field-hint">This helps the Order place you among the right worlds.</div>
+    </div>
+    <div class="form-field">
+      <label for="j-referral">Referred by (optional)</label>
+      <input type="text" id="j-referral" placeholder="Name of a current member, if any">
+    </div>
+    <button type="submit" class="form-submit">Submit application</button>
+  </form>
+
+  <div class="form-success" id="join-success">
+    <div class="fs-icon">&#10003;</div>
+    <div class="fs-title">Application received</div>
+    <div class="fs-body">
+      Your request now drifts at the edge of the void, awaiting review.
+      You'll be notified once the Order has made its decision.
+    </div>
+  </div>
+
+  <div class="form-note">
+    Already a member? <a href="../index.html">Return to the universe</a>
+  </div>
+</div>
+
+<script src="../js/universe.js"></script>
+<script src="../js/api-client.js"></script>
+<script>
+(function(){
+  var canvas = document.getElementById("star-canvas");
+  function resize(){ UNIVERSE.drawStars(canvas); }
+  resize();
+  window.addEventListener("resize", resize);
+
+  var form    = document.getElementById("join-form");
+  var success = document.getElementById("join-success");
+  var errorEl = document.createElement("div");
+  errorEl.style.cssText = "color:#ec8a8a;font-size:12px;text-align:center;margin-top:14px;display:none;";
+  form.appendChild(errorEl);
+
+  form.addEventListener("submit", async function(e){
+    e.preventDefault();
+    var member = {
+      name:     document.getElementById("j-name").value.trim(),
+      email:    document.getElementById("j-email").value.trim(),
+      interest: document.getElementById("j-interest").value.trim(),
+      referral: document.getElementById("j-referral").value.trim()
+    };
+    var submitBtn = form.querySelector(".form-submit");
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Sending...";
+    try {
+      await UNIVERSE.api.applyForMembership(member);
+      form.style.display = "none";
+      success.classList.add("show");
+    } catch (err) {
+      errorEl.textContent = err.message || "Something went wrong. Please try again.";
+      errorEl.style.display = "block";
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Submit application";
+    }
+  });
+})();
+</script>
+</body>
+</html>

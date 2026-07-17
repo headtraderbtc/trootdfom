@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Review — TROTDFM</title>
+  <link rel="stylesheet" href="../css/universe.css">
+  <style>
+    .admin-tabs {
+      display: flex; justify-content: center; gap: 10px;
+      margin-bottom: 28px;
+    }
+    .admin-tab {
+      font-family: var(--font-title);
+      font-size: 10px; letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      background: transparent;
+      border: 0.5px solid rgba(160,110,200,0.25);
+      border-radius: 14px;
+      padding: 7px 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .admin-tab.active {
+      color: rgba(220,200,240,0.9);
+      background: rgba(160,110,200,0.15);
+      border-color: rgba(160,110,200,0.5);
+    }
+    .admin-panel { display: none; }
+    .admin-panel.active { display: block; }
+  </style>
+</head>
+<body class="page-scrollable">
+
+<a href="../index.html" id="subpage-back">&#8592; &nbsp; The Order</a>
+
+<canvas id="star-canvas"></canvas>
+
+<div class="admin-shell">
+  <div class="form-eyebrow" style="margin-bottom:6px;">The Royal Order</div>
+  <div class="form-title" style="margin-bottom:24px;">Admin review</div>
+
+  <div class="admin-tabs">
+    <button class="admin-tab active" data-tab="comets">Worlds &amp; comets</button>
+    <button class="admin-tab" data-tab="members">Membership</button>
+  </div>
+
+  <div class="admin-panel active" id="panel-comets"></div>
+  <div class="admin-panel" id="panel-members"></div>
+</div>
+
+<script src="../js/universe.js"></script>
+<script src="../js/api-client.js"></script>
+<script>
+(function(){
+  var canvas = document.getElementById("star-canvas");
+  function resize(){ UNIVERSE.drawStars(canvas); }
+  resize();
+  window.addEventListener("resize", resize);
+
+  var tabs   = document.querySelectorAll(".admin-tab");
+  var panels = { comets: document.getElementById("panel-comets"), members: document.getElementById("panel-members") };
+
+  tabs.forEach(function(t){
+    t.addEventListener("click", function(){
+      tabs.forEach(function(x){ x.classList.remove("active"); });
+      t.classList.add("active");
+      Object.keys(panels).forEach(function(k){ panels[k].classList.remove("active"); });
+      panels[t.dataset.tab].classList.add("active");
+    });
+  });
+
+  function timeAgo(iso) {
+    var diff = Math.floor((Date.now() - new Date(iso)) / 60000);
+    if (diff < 1) return "just now";
+    if (diff < 60) return diff + "m ago";
+    var h = Math.floor(diff/60);
+    if (h < 24) return h + "h ago";
+    return Math.floor(h/24) + "d ago";
+  }
+
+  function divisionLabel(id) {
+    if (id === "none" || !id) return "New division";
+    var p = UNIVERSE.PLANETS.filter(function(x){ return x.id === id; })[0];
+    return p ? "Near " + p.name : id;
+  }
+
+  function escapeHtml(str) {
+    var d = document.createElement("div");
+    d.textContent = str || "";
+    return d.innerHTML;
+  }
+
+  async function renderComets() {
+    panels.comets.innerHTML = "<div class='admin-empty'>Loading...</div>";
+    var data;
+    try {
+      data = await UNIVERSE.api.allComets();
+    } catch (err) {
+      panels.comets.innerHTML = err.status === 403
+        ? "<div class='admin-empty'>You must be logged in as an Order admin to view this.</div>"
+        : "<div class='admin-empty'>Could not load comets: " + escapeHtml(err.message) + "</div>";
+      return;
+    }
+    var comets = data.comets;
+    var el = panels.comets;
+    if (comets.length === 0) {
+      el.innerHTML = "<div class='admin-empty'>No proposals yet. The void is quiet.</div>";
+      return;
+    }
+    el.innerHTML = "";
+    comets.forEach(function(c) {
+      var card = document.createElement("div");
+      card.className = "admin-card";
+      card.innerHTML =
+        "<div class='ac-top'>" +
+          "<div class='ac-name'>" + escapeHtml(c.name) + "</div>" +
+          "<div class='ac-status " + c.status + "'>" + c.status + "</div>" +
+        "</div>" +
+        "<div class='ac-meta'>Proposed by " + escapeHtml(c.proposer_name || "Unknown") + " &nbsp;·&nbsp; " +
+          divisionLabel(c.division) + " &nbsp;·&nbsp; " + timeAgo(c.created_at) + "</div>" +
+        "<div class='ac-desc'>" + escapeHtml(c.description) +
+          (c.contributors ? "<br><br><strong style='color:var(--text-muted)'>Contributors:</strong> " + escapeHtml(c.contributors) : "") +
+        "</div>";
+
+      if (c.status === "pending") {
+        var actions = document.createElement("div");
+        actions.className = "ac-actions";
+        var approveBtn = document.createElement("button");
+        approveBtn.className = "ac-btn approve";
+        approveBtn.textContent = "Approve — send into orbit";
+        approveBtn.addEventListener("click", async function(){
+          approveBtn.disabled = true;
+          try { await UNIVERSE.api.cometDecision(c.id, true); renderComets(); }
+          catch (err) { alert(err.message); approveBtn.disabled = false; }
+        });
+        var rejectBtn = document.createElement("button");
+        rejectBtn.className = "ac-btn reject";
+        rejectBtn.textContent = "Reject";
+        rejectBtn.addEventListener("click", async function(){
+          rejectBtn.disabled = true;
+          try { await UNIVERSE.api.cometDecision(c.id, false); renderComets(); }
+          catch (err) { alert(err.message); rejectBtn.disabled = false; }
+        });
+        actions.appendChild(approveBtn);
+        actions.appendChild(rejectBtn);
+        card.appendChild(actions);
+      }
+      el.appendChild(card);
+    });
+  }
+
+  async function renderMembers() {
+    panels.members.innerHTML = "<div class='admin-empty'>Loading...</div>";
+    var data;
+    try {
+      data = await UNIVERSE.api.pendingMembers();
+    } catch (err) {
+      panels.members.innerHTML = err.status === 403
+        ? "<div class='admin-empty'>You must be logged in as an Order admin to view this.</div>"
+        : "<div class='admin-empty'>Could not load members: " + escapeHtml(err.message) + "</div>";
+      return;
+    }
+    var members = data.members;
+    var el = panels.members;
+    if (members.length === 0) {
+      el.innerHTML = "<div class='admin-empty'>No applications yet.</div>";
+      return;
+    }
+    el.innerHTML = "";
+    members.forEach(function(m) {
+      var card = document.createElement("div");
+      card.className = "admin-card";
+      card.innerHTML =
+        "<div class='ac-top'>" +
+          "<div class='ac-name'>" + escapeHtml(m.name) + "</div>" +
+          "<div class='ac-status " + m.status + "'>" + m.status + "</div>" +
+        "</div>" +
+        "<div class='ac-meta'>" + escapeHtml(m.email) + " &nbsp;·&nbsp; " + timeAgo(m.created_at) +
+          (m.referral ? " &nbsp;·&nbsp; Referred by " + escapeHtml(m.referral) : "") + "</div>" +
+        "<div class='ac-desc'>" + escapeHtml(m.interest) + "</div>";
+
+      if (m.status === "pending") {
+        var actions = document.createElement("div");
+        actions.className = "ac-actions";
+        var approveBtn = document.createElement("button");
+        approveBtn.className = "ac-btn approve";
+        approveBtn.textContent = "Approve membership";
+        approveBtn.addEventListener("click", async function(){
+          approveBtn.disabled = true;
+          try { await UNIVERSE.api.memberDecision(m.id, true); renderMembers(); }
+          catch (err) { alert(err.message); approveBtn.disabled = false; }
+        });
+        var rejectBtn = document.createElement("button");
+        rejectBtn.className = "ac-btn reject";
+        rejectBtn.textContent = "Reject";
+        rejectBtn.addEventListener("click", async function(){
+          rejectBtn.disabled = true;
+          try { await UNIVERSE.api.memberDecision(m.id, false); renderMembers(); }
+          catch (err) { alert(err.message); rejectBtn.disabled = false; }
+        });
+        actions.appendChild(approveBtn);
+        actions.appendChild(rejectBtn);
+        card.appendChild(actions);
+      }
+      el.appendChild(card);
+    });
+  }
+
+  renderComets();
+  renderMembers();
+})();
+</script>
+</body>
+</html>

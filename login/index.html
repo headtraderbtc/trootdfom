@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In — The Royal Order</title>
+  <link rel="stylesheet" href="../css/universe.css">
+  <style>
+    .login-divider {
+      text-align: center;
+      font-size: 10px;
+      color: var(--text-faint);
+      letter-spacing: 0.1em;
+      margin: 20px 0;
+    }
+    .login-note {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-faint);
+      margin-top: 18px;
+      line-height: 1.6;
+    }
+    .login-note a {
+      color: rgba(160,110,200,0.7);
+      text-decoration: none;
+    }
+    #login-error {
+      color: #ec8a8a;
+      font-size: 12px;
+      text-align: center;
+      margin-top: 12px;
+      display: none;
+    }
+  </style>
+</head>
+<body class="page-scrollable">
+
+<a href="../index.html" id="subpage-back">&#8592; &nbsp; The Order</a>
+<canvas id="star-canvas"></canvas>
+
+<div class="form-shell">
+  <div class="form-eyebrow">The Royal Order</div>
+  <div class="form-title">Sign In</div>
+  <div class="form-sub">
+    Enter your credentials to access the Order's worlds.
+  </div>
+
+  <form id="login-form">
+    <div class="form-field">
+      <label for="l-email">Email</label>
+      <input type="email" id="l-email" required placeholder="you@example.com" autocomplete="email">
+    </div>
+    <div class="form-field">
+      <label for="l-password">Password</label>
+      <input type="password" id="l-password" required placeholder="Your password" autocomplete="current-password">
+    </div>
+    <button type="submit" class="form-submit">Enter the void</button>
+    <div id="login-error"></div>
+  </form>
+
+  <div class="login-note">
+    Not yet a member?
+    <a href="../join/index.html">Apply to join the Order</a>
+    <br><br>
+    Once logged in, you'll be returned to wherever you came from.
+  </div>
+</div>
+
+<script src="../js/universe.js"></script>
+<script src="../js/api-client.js"></script>
+<script>
+(function () {
+  /* draw stars */
+  var canvas = document.getElementById("star-canvas");
+  UNIVERSE.drawStars(canvas);
+  window.addEventListener("resize", function () { UNIVERSE.drawStars(canvas); });
+
+  /* grab returnTo param so we can redirect back after login */
+  var params   = new URLSearchParams(window.location.search);
+  var returnTo = params.get("returnTo") || "../index.html";
+
+  var form     = document.getElementById("login-form");
+  var errorEl  = document.getElementById("login-error");
+
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var email    = document.getElementById("l-email").value.trim();
+    var password = document.getElementById("l-password").value;
+    var btn      = form.querySelector(".form-submit");
+
+    btn.disabled    = true;
+    btn.textContent = "Entering...";
+    errorEl.style.display = "none";
+
+    try {
+      await UNIVERSE.api.login(email, password);
+      /* session cookie is now set — redirect back to where we came from */
+      window.location.href = decodeURIComponent(returnTo);
+    } catch (err) {
+      errorEl.textContent   = err.message || "Invalid credentials. Please try again.";
+      errorEl.style.display = "block";
+      btn.disabled    = false;
+      btn.textContent = "Enter the void";
+    }
+  });
+})();
+</script>
+</body>
+</html>

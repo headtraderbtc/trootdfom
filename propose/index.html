@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Propose a New World — TROTDFM</title>
+  <link rel="stylesheet" href="../css/universe.css">
+</head>
+<body class="page-scrollable">
+
+<a href="../index.html" id="subpage-back">&#8592; &nbsp; The Order</a>
+
+<canvas id="star-canvas"></canvas>
+
+<div class="form-shell">
+  <div class="form-eyebrow">The Royal Order</div>
+  <div class="form-title">Propose a new world</div>
+  <div class="form-sub">
+    Every world begins as a comet — small, distant, unproven.<br>
+    If the Order approves it, it enters orbit and begins to grow.
+  </div>
+
+  <form id="propose-form">
+    <div class="form-field">
+      <label for="p-name">World name</label>
+      <input type="text" id="p-name" required placeholder="e.g. Consciousness Lab">
+    </div>
+    <div class="form-field">
+      <label for="p-division">Closest existing division</label>
+      <select id="p-division" required>
+        <option value="" disabled selected>Choose a planet this might orbit near</option>
+        <option value="heritage">Heritage</option>
+        <option value="knowledge">Knowledge</option>
+        <option value="games">Games</option>
+        <option value="research">Research</option>
+        <option value="education">Education</option>
+        <option value="none">None — this is something new</option>
+      </select>
+    </div>
+    <div class="form-field">
+      <label for="p-desc">What is this project?</label>
+      <textarea id="p-desc" required placeholder="Describe the project, its purpose, and what it will contain."></textarea>
+    </div>
+    <div class="form-field">
+      <label for="p-contributors">Who else is contributing?</label>
+      <input type="text" id="p-contributors" placeholder="Names of other members involved, if any">
+    </div>
+    <button type="submit" class="form-submit">Send into the void</button>
+  </form>
+
+  <div class="form-success" id="propose-success">
+    <div class="fs-icon">&#10003;</div>
+    <div class="fs-title">Comet launched</div>
+    <div class="fs-body">
+      Your proposal now drifts at the far edge of the universe as a comet.
+      The Order will review it — if approved, it enters orbit and begins to grow.
+    </div>
+  </div>
+
+  <div class="form-note">
+    Not a member yet? <a href="../join/index.html">Join the Order first</a>
+  </div>
+</div>
+
+<script src="../js/universe.js"></script>
+<script src="../js/api-client.js"></script>
+<script>
+(function(){
+  var canvas = document.getElementById("star-canvas");
+  function resize(){ UNIVERSE.drawStars(canvas); }
+  resize();
+  window.addEventListener("resize", resize);
+
+  var form    = document.getElementById("propose-form");
+  var success = document.getElementById("propose-success");
+  var errorEl = document.createElement("div");
+  errorEl.style.cssText = "color:#ec8a8a;font-size:12px;text-align:center;margin-top:14px;display:none;";
+  form.appendChild(errorEl);
+
+  form.addEventListener("submit", async function(e){
+    e.preventDefault();
+    var comet = {
+      name:         document.getElementById("p-name").value.trim(),
+      division:     document.getElementById("p-division").value,
+      description:  document.getElementById("p-desc").value.trim(),
+      contributors: document.getElementById("p-contributors").value.trim()
+    };
+    var submitBtn = form.querySelector(".form-submit");
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Launching...";
+    try {
+      await UNIVERSE.api.proposeComet(comet);
+      form.style.display = "none";
+      success.classList.add("show");
+    } catch (err) {
+      if (err.status === 401) {
+        errorEl.textContent = "You need to be a logged-in member to propose a world. Please join or log in first.";
+      } else {
+        errorEl.textContent = err.message || "Something went wrong. Please try again.";
+      }
+      errorEl.style.display = "block";
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Send into the void";
+    }
+  });
+})();
+</script>
+</body>
+</html>

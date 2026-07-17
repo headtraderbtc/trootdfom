@@ -1,0 +1,636 @@
+/* ============================================
+   THE ROYAL ORDER OF THE DARK FORCE OF MATTER
+   Universe Shell — Shared Styles
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Raleway:wght@300;400&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --void:        #03020a;
+  --deep:        #07040f;
+  --void-rim:    #110820;
+  --gold:        #c9a84c;
+  --gold-dim:    #7a6228;
+  --purple-dim:  #2a1245;
+  --text-main:   rgba(255,255,255,0.82);
+  --text-muted:  rgba(255,255,255,0.35);
+  --text-faint:  rgba(255,255,255,0.18);
+  --font-title:  'Cinzel', serif;
+  --font-body:   'Raleway', sans-serif;
+}
+
+html {
+  height: 100%;
+  background: var(--void);
+}
+
+body {
+  width: 100%; height: 100%;
+  background: var(--void);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  font-weight: 300;
+  overflow: hidden;
+}
+
+/* Form pages and admin add this class to body to enable scrolling */
+body.page-scrollable {
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: auto;
+  min-height: 100vh;
+}
+
+html:has(body.page-scrollable) {
+  overflow-y: auto;
+  height: auto;
+}
+
+/* ---- STAR CANVAS (background layer) ---- */
+#star-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* On scrollable pages the form shell needs to sit above the canvas */
+body.page-scrollable .form-shell,
+body.page-scrollable .admin-shell {
+  position: relative;
+  z-index: 2;
+}
+
+/* ---- MOON SCENE (planet sub-pages) ---- */
+#moon-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none; /* allow clicks to pass through to moon elements */
+}
+#moon-scene .moon-wrap,
+#moon-scene .moon-orbit-ring,
+#moon-scene #wormhole-wrap {
+  pointer-events: auto;
+}
+
+/* ---- UNIVERSE SCENE (planet/wormhole layer) ---- */
+#universe-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+}
+
+/* ---- WORMHOLE ---- */
+#wormhole-wrap {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* ---- ORDER TITLE (center label) ---- */
+#order-title {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 3;
+  pointer-events: none;
+  margin-top: 68px;
+}
+#order-title .line1 {
+  font-family: var(--font-title);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: rgba(160,110,200,0.5);
+  text-transform: uppercase;
+}
+#order-title .line2 {
+  font-family: var(--font-title);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: rgba(120,80,180,0.4);
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+/* ---- ORBIT RINGS ---- */
+.orbit-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 0.5px solid rgba(255,255,255,0.05);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* ---- PLANET ---- */
+.planet-wrap {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  cursor: pointer;
+  z-index: 4;
+}
+.planet-body {
+  border-radius: 50%;
+  margin: auto;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+.planet-wrap:hover .planet-body {
+  transform: scale(1.22);
+}
+.planet-label {
+  font-family: var(--font-title);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: 6px;
+  transition: color 0.2s;
+  white-space: nowrap;
+}
+.planet-wrap:hover .planet-label {
+  color: rgba(255,255,255,0.85);
+}
+.activity-pip {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  position: absolute;
+  top: 1px; right: 1px;
+  z-index: 2;
+}
+
+/* ---- TOOLTIP ---- */
+#universe-tooltip {
+  position: fixed;
+  background: rgba(7,4,16,0.95);
+  border: 0.5px solid rgba(160,110,200,0.25);
+  border-radius: 8px;
+  padding: 9px 13px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 20;
+  max-width: 180px;
+}
+#universe-tooltip.on { opacity: 1; }
+#universe-tooltip .tt-name  { font-family: var(--font-title); font-size: 12px; color: #fff; margin-bottom: 3px; letter-spacing: 0.08em; }
+#universe-tooltip .tt-desc  { font-size: 11px; color: var(--text-muted); }
+#universe-tooltip .tt-stat  { font-size: 10px; color: var(--text-faint); margin-top: 5px; }
+
+/* ---- MEMBER PANEL ---- */
+#member-panel {
+  position: fixed;
+  top: 0; right: -100%; /* Hidden off-screen */
+  width: 100%;          /* Full width on mobile */
+  height: 100%;
+  transition: right 0.3s ease;
+  background: rgba(7,4,16,0.94);
+  border: 0.5px solid rgba(160,110,200,0.2);
+  border-radius: 10px;
+  padding: 14px;
+  z-index: 15;
+  display: none;
+}
+#member-panel.open { 
+  display: block;
+  right: 0; /* Slide in from the right */
+ }
+#member-panel .mp-avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 400;
+  font-family: var(--font-title);
+  margin-bottom: 8px;
+}
+#member-panel .mp-name  { font-family: var(--font-title); font-size: 13px; color: rgba(255,255,255,0.9); letter-spacing: 0.06em; }
+#member-panel .mp-role  { font-size: 10px; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; }
+#member-panel .mp-head  { font-size: 9px; color: var(--text-faint); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 7px; }
+#member-panel .mp-row   { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 0.5px solid rgba(255,255,255,0.05); }
+#member-panel .mp-row:last-child { border-bottom: none; }
+#member-panel .mp-dot   { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+#member-panel .mp-pname { font-size: 11px; color: rgba(255,255,255,0.65); }
+#member-panel .mp-close {
+  position: absolute; top: 10px; right: 12px;
+  background: none; border: none; color: var(--text-muted);
+  cursor: pointer; font-size: 14px; line-height: 1;
+}
+#member-panel .mp-close:hover { color: rgba(255,255,255,0.8); }
+
+/* ---- NAV BAR ---- */
+#nav-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 44px;
+  width: 100%;
+  flex-direction: column;
+  background: linear-gradient(transparent, rgba(3,2,10,0.96));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  z-index: 10;
+  pointer-events: none;
+}
+#nav-bar .nav-left  { font-family: var(--font-title); font-size: 9px; letter-spacing: 0.16em; color: var(--text-faint); text-transform: uppercase; }
+#nav-bar .nav-right { 
+  display: flex; 
+  flex-wrap: wrap; /* Items will wrap to next line */
+  justify-content: center;
+  gap: 15px;
+}
+#nav-bar .nav-legend { 
+  display: flex; 
+  align-items: center; 
+  gap: 4px; 
+  font-size: 10px; 
+  color: var(--text-faint); 
+  letter-spacing: 0.06em; 
+}
+#nav-bar .nav-pip   { width: 5px; height: 5px; border-radius: 50%; }
+
+/* ---- COMET ---- */
+.comet-wrap {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  cursor: pointer;
+  z-index: 4;
+}
+.comet-body {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #e8e4f0, #9c8fc0 70%, transparent);
+  margin: auto;
+  box-shadow: 0 0 6px 1px rgba(160,130,220,0.5);
+  transition: transform 0.2s;
+}
+.comet-wrap:hover .comet-body { transform: scale(1.6); }
+.comet-label {
+  font-family: var(--font-title);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(200,180,230,0.5);
+  margin-top: 4px;
+  white-space: nowrap;
+}
+.comet-tail {
+  position: absolute;
+  width: 26px; height: 1.5px;
+  background: linear-gradient(to left, rgba(160,130,220,0.5), transparent);
+  top: 50%; right: 100%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.moon-orbit {
+  width: 40px; height: 40px;
+  cursor: pointer;
+  display: flex; flex-direction: column; align-items: center;
+  z-index: 50;
+}
+.moon-body {
+  width: 10px; height: 10px;
+  background: white; border-radius: 50%;
+}
+.moon-label {
+  font-size: 8px; color: white; white-space: nowrap;
+  margin-top: 5px;
+}
+
+/* ---- NAV LINKS (join / propose / admin) ---- */
+#nav-bar .nav-link {
+  font-family: var(--font-title);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  text-decoration: none;
+  pointer-events: auto;
+  transition: color 0.2s;
+  border: 0.5px solid rgba(160,110,200,0.25);
+  border-radius: 14px;
+  padding: 6px 14px;
+}
+#nav-bar .nav-link:hover { color: rgba(255,255,255,0.85); border-color: rgba(160,110,200,0.5); }
+#nav-bar .nav-link.primary {
+  background: rgba(160,110,200,0.12);
+  color: rgba(220,200,240,0.85);
+}
+
+/* ---- FORM PAGE SHELL ---- */
+.form-shell {
+  position: relative;
+  z-index: 5;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 72px 24px 80px;   /* enough bottom padding for submit button */
+  min-height: 100vh;          /* ensures page is tall enough to scroll */
+  box-sizing: border-box;
+}
+.form-eyebrow {
+  font-family: var(--font-title);
+  font-size: 10px; letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(160,110,200,0.55);
+  text-align: center;
+  margin-bottom: 8px;
+}
+.form-title {
+  font-family: var(--font-title);
+  font-size: 22px; letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.9);
+  text-align: center;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.form-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.6;
+  margin-bottom: 32px;
+}
+.form-field { margin-bottom: 18px; }
+.form-field label {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 7px;
+}
+.form-field input,
+.form-field textarea,
+.form-field select {
+  width: 100%;
+  background: rgba(255,255,255,0.03);
+  border: 0.5px solid rgba(160,110,200,0.25);
+  border-radius: 6px;
+  padding: 10px 12px;
+  color: rgba(255,255,255,0.85);
+  font-family: var(--font-body);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-field input:focus,
+.form-field textarea:focus,
+.form-field select:focus {
+  border-color: rgba(160,110,200,0.6);
+}
+.form-field textarea { resize: vertical; min-height: 80px; }
+.form-field .field-hint {
+  font-size: 10px; color: var(--text-faint);
+  margin-top: 5px;
+}
+.form-submit {
+  width: 100%;
+  background: rgba(160,110,200,0.18);
+  border: 0.5px solid rgba(160,110,200,0.5);
+  border-radius: 6px;
+  padding: 12px;
+  font-family: var(--font-title);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(230,215,245,0.9);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.form-submit:hover { background: rgba(160,110,200,0.3); }
+.form-note {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-top: 18px;
+}
+.form-note a { color: rgba(160,110,200,0.7); text-decoration: none; }
+.form-note a:hover { color: rgba(200,160,230,0.9); }
+
+.form-success {
+  display: none;
+  text-align: center;
+  padding: 40px 20px;
+}
+.form-success.show { display: block; }
+.form-success .fs-icon {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(160,110,200,0.5);
+  margin: 0 auto 18px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: rgba(200,170,230,0.9);
+}
+.form-success .fs-title {
+  font-family: var(--font-title);
+  font-size: 16px; letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.85);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.form-success .fs-body {
+  font-size: 12px; color: var(--text-muted);
+  line-height: 1.7; max-width: 320px;
+  margin: 0 auto;
+}
+
+/* ---- ADMIN PANEL ---- */
+.admin-shell {
+  position: relative;
+  z-index: 5;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 90px 24px 60px;
+}
+.admin-card {
+  background: rgba(255,255,255,0.02);
+  border: 0.5px solid rgba(160,110,200,0.2);
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+}
+.admin-card .ac-top {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 8px;
+}
+.admin-card .ac-name {
+  font-family: var(--font-title);
+  font-size: 14px; letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.88);
+}
+.admin-card .ac-status {
+  font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 10px;
+}
+.ac-status.pending  { background: rgba(192,168,58,0.15); color: #d4bb5a; }
+.ac-status.approved { background: rgba(79,201,122,0.15); color: #6fdb91; }
+.ac-status.rejected { background: rgba(224,90,90,0.15);  color: #ec8a8a; }
+.admin-card .ac-meta {
+  font-size: 10px; color: var(--text-faint);
+  margin-bottom: 10px;
+}
+.admin-card .ac-desc {
+  font-size: 12px; color: var(--text-muted);
+  line-height: 1.6; margin-bottom: 14px;
+}
+.admin-card .ac-actions { display: flex; gap: 10px; }
+.admin-card .ac-btn {
+  flex: 1;
+  border-radius: 6px;
+  padding: 8px;
+  font-family: var(--font-title);
+  font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+  cursor: pointer; border: 0.5px solid;
+  background: transparent;
+  transition: background 0.2s;
+}
+.ac-btn.approve { color: #6fdb91; border-color: rgba(79,201,122,0.4); }
+.ac-btn.approve:hover { background: rgba(79,201,122,0.12); }
+.ac-btn.reject { color: #ec8a8a; border-color: rgba(224,90,90,0.4); }
+.ac-btn.reject:hover { background: rgba(224,90,90,0.12); }
+.admin-empty {
+  text-align: center;
+  color: var(--text-faint);
+  font-size: 12px;
+  padding: 40px 0;
+}
+
+/* ---- PLANET SUB-PAGE SHELL ---- */
+#subpage-shell {
+  position: fixed; inset: 0; z-index: 5;
+  display: none; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+#subpage-shell.open { display: flex; }
+#subpage-back {
+  position: fixed; top: 18px; left: 18px;
+  font-family: var(--font-title);
+  font-size: 10px; letter-spacing: 0.14em;
+  color: var(--text-muted); cursor: pointer;
+  text-transform: uppercase; z-index: 16;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+#subpage-back:hover { color: rgba(255,255,255,0.8); }
+/* ---- PLANET SIDEBAR ---- */
+#planet-sidebar {
+  position: fixed;
+  top: 0; right: -380px;
+  width: 340px;
+  height: 100%;
+  background: rgba(5,3,14,0.97);
+  border-left: 0.5px solid rgba(160,110,200,0.2);
+  z-index: 30;
+  overflow-y: auto;
+  transition: right 0.35s cubic-bezier(0.4,0,0.2,1);
+  padding: 28px 24px 80px;
+}
+#planet-sidebar.open { right: 0; }
+#planet-sidebar .ps-close {
+  position: absolute; top: 16px; right: 18px;
+  background: none; border: none;
+  color: var(--text-muted); cursor: pointer;
+  font-size: 16px; line-height: 1;
+  transition: color 0.2s;
+}
+#planet-sidebar .ps-close:hover { color: #fff; }
+#planet-sidebar .ps-planet-dot {
+  width: 36px; height: 36px; border-radius: 50%;
+  margin-bottom: 14px;
+}
+#planet-sidebar .ps-name {
+  font-family: var(--font-title);
+  font-size: 18px; letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.92);
+  margin-bottom: 6px;
+}
+#planet-sidebar .ps-desc {
+  font-size: 12px; color: var(--text-muted);
+  line-height: 1.6; margin-bottom: 8px;
+}
+#planet-sidebar .ps-stat {
+  font-size: 10px; color: var(--text-faint);
+  letter-spacing: 0.06em; margin-bottom: 24px;
+  display: flex; gap: 14px;
+}
+#planet-sidebar .ps-stat span { display: flex; align-items: center; gap: 4px; }
+#planet-sidebar .ps-section {
+  font-family: var(--font-title);
+  font-size: 9px; letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 0.5px solid rgba(255,255,255,0.06);
+}
+.moon-card {
+  display: flex; align-items: center;
+  gap: 12px;
+  padding: 11px 12px;
+  border-radius: 8px;
+  border: 0.5px solid rgba(160,110,200,0.12);
+  background: rgba(255,255,255,0.02);
+  margin-bottom: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+.moon-card:hover {
+  border-color: rgba(160,110,200,0.4);
+  background: rgba(160,110,200,0.07);
+}
+.moon-card .mc-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  flex-shrink: 0;
+}
+.moon-card .mc-info { flex: 1; }
+.moon-card .mc-name {
+  font-family: var(--font-title);
+  font-size: 11px; letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.8);
+  margin-bottom: 2px;
+}
+.moon-card .mc-url {
+  font-size: 10px; color: var(--text-faint);
+}
+.moon-card .mc-arrow {
+  font-size: 10px; color: var(--text-faint);
+  transition: color 0.2s;
+}
+.moon-card:hover .mc-arrow { color: rgba(255,255,255,0.6); }
+
+/* ---- SCENE ZOOM STATE ---- */
+#universe-scene {
+  transition: transform 0.5s cubic-bezier(0.4,0,0.2,1),
+              transform-origin 0.5s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ---- MOBILE ---- */
+@media (max-width: 768px) {
+  #planet-sidebar {
+    width: 100%;
+    right: -100%;
+  }
+  #planet-sidebar.open { right: 0; }
+
+  #nav-bar {
+    height: auto;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 14px;
+  }
+  #nav-bar .nav-right {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+  #nav-bar .nav-left {
+    display: none; /* hide verbose text on small screens */
+  }
+}

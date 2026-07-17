@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Heritage — TROTDFM</title>
+  <link rel="stylesheet" href="../css/universe.css">
+  <style>
+    #planet-hero {
+      position: fixed; inset: 0; pointer-events: none;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; z-index: 3;
+    }
+    .ph-ball {
+      border-radius: 50%; margin-bottom: 14px;
+      animation: ph-float 4s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes ph-float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+    .ph-name {
+      font-family:'Cinzel',serif; font-size:clamp(14px,4vw,22px);
+      letter-spacing:0.16em; text-transform:uppercase;
+      color:rgba(255,255,255,0.9); text-align:center;
+    }
+    .ph-desc {
+      font-size:clamp(9px,2.5vw,11px); letter-spacing:0.08em; text-transform:uppercase;
+      color:rgba(255,255,255,0.35); margin-top:6px; text-align:center;
+      padding: 0 20px;
+    }
+    #moon-tip {
+      position:fixed; background:rgba(7,4,16,0.95);
+      border:0.5px solid rgba(160,110,200,0.22);
+      border-radius:8px; padding:8px 12px;
+      pointer-events:none; opacity:0; transition:opacity 0.15s; z-index:20;
+      max-width: 180px;
+    }
+    #moon-tip.on { opacity:1; }
+    #moon-tip .mt-name { font-family:'Cinzel',serif; font-size:11px; color:#fff; margin-bottom:2px; }
+    #moon-tip .mt-desc { font-size:10px; color:rgba(255,255,255,0.45); }
+    .moon-wrap {
+      position:absolute; transform:translate(-50%,-50%);
+      text-align:center; cursor:pointer; z-index:4;
+    }
+    .moon-body {
+      border-radius:50%; margin:auto;
+      transition:transform 0.2s, box-shadow 0.2s;
+    }
+    .moon-wrap:hover .moon-body { transform:scale(1.35); }
+    .moon-lbl {
+      font-family:'Cinzel',serif; font-size:8px;
+      letter-spacing:0.1em; text-transform:uppercase;
+      color:rgba(255,255,255,0.5); margin-top:5px;
+      white-space:nowrap; transition:color 0.2s;
+    }
+    .moon-wrap:hover .moon-lbl { color:rgba(255,255,255,0.9); }
+    .moon-orbit-ring {
+      position:absolute; border-radius:50%;
+      border:0.5px solid rgba(255,255,255,0.07);
+      transform:translate(-50%,-50%); pointer-events:none;
+    }
+    .moon-ext-badge {
+      font-size:7px; letter-spacing:0.06em;
+      color:rgba(160,130,220,0.6); margin-top:2px;
+    }
+  </style>
+</head>
+<body>
+<a href="../index.html" id="subpage-back">&#8592; &nbsp; The Order</a>
+<canvas id="star-canvas"></canvas>
+<div id="moon-scene">
+  <!-- wormhole and moons injected here by JS -->
+</div>
+<div id="planet-hero">
+  <div class="ph-ball" id="ph-ball"></div>
+  <div class="ph-name" id="ph-name"></div>
+  <div class="ph-desc" id="ph-desc"></div>
+</div>
+<div id="moon-tip"><div class="mt-name"></div><div class="mt-desc"></div></div>
+<div id="nav-bar">
+  <span class="nav-left" id="nav-label"></span>
+  <div class="nav-right"></div>
+</div>
+<script src="../js/universe.js"></script>
+<script>
+(function(){
+  var PLANET_ID = "heritage";
+
+  /* ---- Moon definitions — set url:"" until the project is hosted ---- */
+  var MOON_DATA = {
+    heritage: [
+      { name:"Family Database", desc:"Genealogy records & family trees",      url:"https://YOUR-GENEALOGY-APP.azurewebsites.net", orbitR:95,  angle:30  },
+      { name:"Civil Registry",  desc:"Birth, marriage & death records",       url:"", orbitR:138, angle:140 },
+      { name:"Oral Archives",   desc:"Stories, legends & oral histories",     url:"", orbitR:118, angle:250 }
+    ],
+    knowledge: [
+      { name:"Wiki",     desc:"The Order's living encyclopedia",              url:"", orbitR:95,  angle:20  },
+      { name:"Library",  desc:"Documents, texts & references",                url:"", orbitR:135, angle:110 },
+      { name:"Doctrine", desc:"Core philosophy & principles",                 url:"", orbitR:115, angle:210 },
+      { name:"Lexicon",  desc:"Order terminology & definitions",              url:"", orbitR:155, angle:310 }
+    ],
+    games: [
+      { name:"ZeroDominus", desc:"The flagship strategy MMO",                 url:"", orbitR:98,  angle:45  },
+      { name:"Chess",       desc:"Telegram chess tournaments",                url:"", orbitR:138, angle:155 },
+      { name:"Trivia",      desc:"Order knowledge challenges",                url:"", orbitR:118, angle:255 },
+      { name:"Forge",       desc:"Future games in development",               url:"", orbitR:155, angle:340 }
+    ],
+    research: [
+      { name:"Consciousness Lab", desc:"Theory of mind & philosophy",         url:"", orbitR:100, angle:35  },
+      { name:"AI Division",       desc:"Machine intelligence experiments",    url:"", orbitR:140, angle:145 },
+      { name:"Dark Archive",      desc:"The Order's cosmology & doctrine",    url:"", orbitR:120, angle:245 },
+      { name:"Expeditions",       desc:"Member personal research projects",   url:"", orbitR:158, angle:320 }
+    ],
+    education: [
+      { name:"Curriculum",  desc:"Order learning pathways",                   url:"", orbitR:98,  angle:60  },
+      { name:"Workshops",   desc:"Member-led sessions & seminars",            url:"", orbitR:138, angle:200 }
+    ]
+  };
+
+  var p = UNIVERSE.PLANETS.filter(function(x){ return x.id === PLANET_ID; })[0];
+  if (!p) { return; }
+
+  var moons     = MOON_DATA[PLANET_ID] || [];
+  var angles    = moons.map(function(m){ return m.angle; });
+  var speeds    = moons.map(function(_,i){ return 3.2 + i * 1.0; });
+  var canvas    = document.getElementById("star-canvas");
+  var moonScene = document.getElementById("moon-scene");
+  var tip       = document.getElementById("moon-tip");
+  var cx, cy, orbitScale = 1, lastT = null;
+
+  /* ---- Wormhole — appended into moon-scene ---- */
+  var wormWrap = document.createElement("div");
+  wormWrap.style.cssText = "position:absolute;z-index:2;pointer-events:none;";
+  moonScene.appendChild(wormWrap);
+  var wormCtx  = UNIVERSE.initWormhole(wormWrap);
+  var wormAngle = 0;
+
+  function lighten(hex) {
+    var r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+    return "rgb("+Math.min(255,r+60)+","+Math.min(255,g+60)+","+Math.min(255,b+60)+")";
+  }
+  function moonColor(baseHex, idx) {
+    var r=parseInt(baseHex.slice(1,3),16), g=parseInt(baseHex.slice(3,5),16), b=parseInt(baseHex.slice(5,7),16);
+    var f = 0.6 + (idx % 4) * 0.15;
+    return "rgb("+Math.min(255,Math.round(r*f))+","+Math.min(255,Math.round(g*f))+","+Math.min(255,Math.round(b*f))+")";
+  }
+
+  function resize() {
+    cx = window.innerWidth  / 2;
+    cy = window.innerHeight / 2;
+    var minDim = Math.min(window.innerWidth, window.innerHeight);
+    orbitScale = minDim < 480 ? minDim / 480 : 1;
+
+    UNIVERSE.drawStars(canvas);
+
+    /* position wormhole at center */
+    wormWrap.style.left = cx + "px";
+    wormWrap.style.top  = cy + "px";
+    wormWrap.style.transform = "translate(-50%,-50%)";
+
+    /* hero planet ball */
+    var ball  = document.getElementById("ph-ball");
+    var bSize = Math.max(36, Math.min(60, minDim * 0.1));
+    ball.style.width      = bSize + "px";
+    ball.style.height     = bSize + "px";
+    ball.style.background = "radial-gradient(circle at 35% 30%,"+lighten(p.glow)+","+p.color+" 60%,#0d0820)";
+    ball.style.boxShadow  = "0 0 "+(bSize*0.7)+"px "+(bSize*0.15)+"px "+p.color+"55";
+
+    document.getElementById("ph-name").textContent   = p.name;
+    document.getElementById("ph-desc").textContent   = p.desc || "";
+    document.getElementById("nav-label").textContent = p.name + " · Tap a moon to enter";
+
+    rebuildMoons();
+  }
+
+  function rebuildMoons() {
+    /* remove previous rings and moon wraps only — keep wormhole */
+    moonScene.querySelectorAll(".moon-orbit-ring, .moon-wrap").forEach(function(el) {
+      el.parentNode.removeChild(el);
+    });
+
+    /* orbit rings first (behind moons) */
+    moons.forEach(function(m) {
+      var ring = document.createElement("div");
+      ring.className = "moon-orbit-ring";
+      var r = m.orbitR * orbitScale;
+      ring.style.width  = (r * 2) + "px";
+      ring.style.height = (r * 2) + "px";
+      ring.style.left   = cx + "px";
+      ring.style.top    = cy + "px";
+      moonScene.insertBefore(ring, moonScene.firstChild);
+    });
+
+    /* moon bodies */
+    moons.forEach(function(m, i) {
+      var rad   = angles[i] * Math.PI / 180;
+      var r     = m.orbitR * orbitScale;
+      var mSize = Math.max(10, Math.round(15 * orbitScale));
+      var col   = moonColor(p.color, i);
+
+      var wrap = document.createElement("div");
+      wrap.className  = "moon-wrap";
+      wrap.style.left = (cx + Math.cos(rad) * r) + "px";
+      wrap.style.top  = (cy + Math.sin(rad) * r) + "px";
+
+      var body = document.createElement("div");
+      body.className    = "moon-body";
+      body.style.width  = mSize + "px";
+      body.style.height = mSize + "px";
+      body.style.background = "radial-gradient(circle at 35% 30%,"+lighten(col)+","+col+" 65%,#0a0618)";
+      body.style.boxShadow  = "0 0 10px 2px " + p.color + "55";
+
+      var lbl = document.createElement("div");
+      lbl.className   = "moon-lbl";
+      lbl.textContent = m.name;
+
+      wrap.appendChild(body);
+      wrap.appendChild(lbl);
+
+      if (m.url) {
+        var badge = document.createElement("div");
+        badge.className   = "moon-ext-badge";
+        badge.textContent = "↗ open";
+        wrap.appendChild(badge);
+      }
+
+      /* tooltip */
+      wrap.addEventListener("mouseenter", function(e) {
+        tip.querySelector(".mt-name").textContent = m.name;
+        tip.querySelector(".mt-desc").textContent = m.desc + (m.url ? " — external link" : " — coming soon");
+        tip.classList.add("on");
+        tip.style.left = (e.clientX + 14) + "px";
+        tip.style.top  = (e.clientY - 48) + "px";
+      });
+      wrap.addEventListener("mousemove", function(e) {
+        tip.style.left = (e.clientX + 14) + "px";
+        tip.style.top  = (e.clientY - 48) + "px";
+      });
+      wrap.addEventListener("mouseleave", function() { tip.classList.remove("on"); });
+
+      /* click: navigate if URL set */
+      wrap.addEventListener("click", function() {
+        tip.classList.remove("on");
+        if (m.url) {
+          window.open(m.url, "_blank", "noopener noreferrer");
+        } else {
+          tip.querySelector(".mt-name").textContent = m.name;
+          tip.querySelector(".mt-desc").textContent = "This world is not yet linked to an external page.";
+          tip.classList.add("on");
+          tip.style.left = (cx + 20) + "px";
+          tip.style.top  = (cy - 60) + "px";
+          setTimeout(function(){ tip.classList.remove("on"); }, 2500);
+        }
+      });
+
+      moonScene.appendChild(wrap);
+    });
+  }
+
+  function tick(ts) {
+    if (!lastT) lastT = ts;
+    var dt = Math.min((ts - lastT) / 1000, 0.05);
+    lastT = ts;
+
+    wormAngle += dt * 0.55;
+    UNIVERSE.drawWormhole(wormCtx, wormAngle);
+
+    angles = angles.map(function(a, i) { return (a + speeds[i] * dt) % 360; });
+
+    moonScene.querySelectorAll(".moon-wrap").forEach(function(el, i) {
+      var rad = angles[i] * Math.PI / 180;
+      var r   = moons[i].orbitR * orbitScale;
+      el.style.left = (cx + Math.cos(rad) * r) + "px";
+      el.style.top  = (cy + Math.sin(rad) * r) + "px";
+    });
+
+    requestAnimationFrame(tick);
+  }
+
+  resize();
+  window.addEventListener("resize", resize);
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
