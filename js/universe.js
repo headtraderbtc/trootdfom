@@ -185,3 +185,8 @@
   };
 
 })(window.UNIVERSE = window.UNIVERSE || {});
+/* ---- START ---- */
+  UNIVERSE._STATIC_PLANETS = [];
+  loadLiveData();
+  window.addEventListener("resize", resize);
+  raf = requestAnimationFrame(tick);
