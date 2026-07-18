@@ -116,40 +116,58 @@
   }, 2200);
 
   /* ---- LIVE DATA ---- */
-  async function loadLiveData() {
-    try {
-      var pd = await UNIVERSE.api.planets();
-      if (pd && pd.planets && pd.planets.length) {
-        UNIVERSE.PLANETS = pd.planets.map(function (p, i) {
-          // Preserve static subProjects from the original planet if available
-          var staticP = (UNIVERSE._STATIC_PLANETS || []).filter(function(s){ return s.id === p.id; })[0];
-          return {
-            id: p.id, name: p.name, desc: p.description,
-            color: p.color, glow: p.glow,
-            angle: p.angle, orbitR: p.orbitRadius,
-            contributors: [],
-            lastActivity: p.lastActivity ? new Date(p.lastActivity) : new Date(Date.now() - 1000*60*60*24*120),
-            subUrl: p.subUrl,
-            subProjects: staticP ? staticP.subProjects : []
-          };
-        });
-        angles = UNIVERSE.PLANETS.map(function (p) { return p.angle; });
-        speeds = UNIVERSE.PLANETS.map(function (p, i) { return 3.2 + i * 0.85; });
-      }
-    } catch (e) {
-      console.log("Using static planet data:", e.message);
-    }
-    try {
-      var cd = await UNIVERSE.api.approvedComets();
-      if (cd && cd.comets) {
-        comets = cd.comets.map(function (c) {
-          return { name: c.name, desc: c.description, proposedBy: "a member", angle: c.angle, orbitR: c.orbit_radius };
-        });
-        cometAngles = comets.map(function (c) { return c.angle; });
-        cometSpeeds = comets.map(function () { return 0.6 + Math.random() * 0.5; });
-      }
-    } catch (e) {}
-    resize();
+  function loadLiveData() {
+    UNIVERSE.loadPlanetsFromServer(function(planets) {
+      // merge in subProjects from static data
+      var staticMap = {
+        heritage: [
+          { name:"Family Database", desc:"Genealogy records & family trees", url:"https://muyiwajudah-001-site1.ltempurl.com/" },
+          { name:"Civil Registry",  desc:"Birth, marriage & death records",  url:"" },
+          { name:"Oral Archives",   desc:"Stories, legends & oral histories", url:"" }
+        ],
+        knowledge: [
+          { name:"Wiki",     desc:"The Order's living encyclopedia", url:"https://wiki-production-7870.up.railway.app" },
+          { name:"Library",  desc:"Documents, texts & references",   url:"" },
+          { name:"Doctrine", desc:"Core philosophy & principles",    url:"" },
+          { name:"Lexicon",  desc:"Order terminology & definitions", url:"" }
+        ],
+        games: [
+          { name:"ZeroDominus", desc:"The flagship strategy MMO",       url:"" },
+          { name:"Chess",       desc:"Telegram chess tournaments",       url:"" },
+          { name:"Trivia",      desc:"Order knowledge challenges",       url:"" },
+          { name:"Forge",       desc:"Future games in development",      url:"" }
+        ],
+        research: [
+          { name:"Consciousness Lab", desc:"Theory of mind & philosophy",       url:"" },
+          { name:"AI Division",       desc:"Machine intelligence experiments",  url:"" },
+          { name:"Dark Archive",      desc:"The Order's cosmology & doctrine",  url:"" },
+          { name:"Expeditions",       desc:"Member personal research projects", url:"" }
+        ],
+        education: [
+          { name:"Curriculum", desc:"Order learning pathways",           url:"" },
+          { name:"Workshops",  desc:"Member-led sessions & seminars",    url:"" }
+        ]
+      };
+
+      UNIVERSE.PLANETS = planets.map(function(p) {
+        p.subProjects = staticMap[p.id] || [];
+        return p;
+      });
+
+      angles = UNIVERSE.PLANETS.map(function(p) { return p.angle; });
+      speeds = UNIVERSE.PLANETS.map(function(p, i) { return 3.2 + i * 0.85; });
+      resize();
+    });
+
+    // load comets in parallel
+    UNIVERSE.getApprovedComets().then(function(data) {
+      var list = Array.isArray(data) ? data : (data.comets || []);
+      comets = list.map(function(c) {
+        return { name: c.name, desc: c.description, proposedBy: "a member", angle: c.angle, orbitR: c.orbit_radius };
+      });
+      cometAngles = comets.map(function(c) { return c.angle; });
+      cometSpeeds = comets.map(function() { return 0.6 + Math.random() * 0.5; });
+    }).catch(function() {});
   }
 
   /* ---- RESIZE — key fix: orbit scale from CSS, not transform ---- */
