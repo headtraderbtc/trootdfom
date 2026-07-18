@@ -6,7 +6,7 @@
 (function(UNIVERSE) {
 
   // 🌍 REPLACE THIS LINK WITH YOUR LIVE RAILWAY BACKEND LINK (No trailing slash)
-  var BACKEND_URL = "https://trotdfm-backend-production.up.railway.app/"; 
+  var BACKEND_URL = "https://trotdfm-backend-production.up.railway.app"; 
 
   /* ---------- DATA ---------- */
   UNIVERSE.MEMBERS = [
