@@ -28,20 +28,19 @@
   /* ---------- REAL DATABASE API CALLS ---------- */
   
   // 1. Fetch live planets data from your backend
-  UNIVERSE.loadPlanetsFromServer = function(callback) {
+UNIVERSE.loadPlanetsFromServer = function(callback) {
     fetch(BACKEND_URL + '/api/planets')
       .then(function(res) { return res.json(); })
       .then(function(data) {
-        // Map backend dates back into true JS Date objects for your physics loop
-        UNIVERSE.PLANETS = data.map(function(p) {
-          p.lastActivity = new Date(p.lastActivity);
+        var list = Array.isArray(data) ? data : (data.planets || []);
+        UNIVERSE.PLANETS = list.map(function(p) {
+          p.lastActivity = p.lastActivity ? new Date(p.lastActivity) : new Date(Date.now() - 1000*60*60*24*120);
           return p;
         });
         if (callback) callback(UNIVERSE.PLANETS);
       })
       .catch(function(err) { console.error("Error loading planets:", err); });
   };
-
   // 2. Fetch live comets currently in orbit
   UNIVERSE.getApprovedComets = function() {
     return fetch(BACKEND_URL + '/api/comets/approved')
