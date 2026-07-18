@@ -150,7 +150,10 @@
       };
 
       UNIVERSE.PLANETS = planets.map(function(p) {
-        p.subProjects = staticMap[p.id] || [];
+        p.subProjects    = staticMap[p.id] || [];
+        p.contributors   = p.contributors || [];
+        p.orbitR         = p.orbitR || p.orbit_radius || 130;
+        p.lastActivity   = p.lastActivity ? new Date(p.lastActivity) : new Date(Date.now() - 1000*60*60*24*120);
         return p;
       });
 
@@ -279,7 +282,7 @@
     var status = days < 7 ? "Active" : days < 30 ? "Building" : "Dormant";
     tooltip.querySelector(".tt-name").textContent = p.name;
     tooltip.querySelector(".tt-desc").textContent = p.desc || "";
-    tooltip.querySelector(".tt-stat").textContent = "Contributors: " + p.contributors.length + "  ·  " + status;
+    tooltip.querySelector(".tt-stat").textContent = "Contributors: " + (p.contributors ? p.contributors.length : p.contributorCount || 0) + "  ·  " + status;
     tooltip.classList.add("on");
     moveTooltip(e);
   }
@@ -305,7 +308,7 @@
     var status = days < 7 ? "Active" : days < 30 ? "Building" : "Dormant";
     document.getElementById("ps-stat").innerHTML =
       "<span>&#9679; " + status + "</span>" +
-      "<span>Contributors: " + p.contributors.length + "</span>" +
+      "<span>Contributors: " + (p.contributors ? p.contributors.length : p.contributorCount || 0) + "</span>" +
       "<span>Updated " + days + "d ago</span>";
 
     // Moons / sub-projects
