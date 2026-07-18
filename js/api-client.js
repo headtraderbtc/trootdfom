@@ -36,6 +36,21 @@ async function apiRequest(path, options) {
     }
     return data;
   }
+   login: function(email, password) {
+  return apiRequest("/api/members/login", { 
+    method: "POST", 
+    body: { email: email, password: password } 
+  }).then(function(data) {
+    if (data.token) localStorage.setItem("trotdfm_token", data.token);
+    if (data.member) localStorage.setItem("trotdfm_member", JSON.stringify(data.member));
+    return data;
+  });
+},
+logout: function() {
+  localStorage.removeItem("trotdfm_token");
+  localStorage.removeItem("trotdfm_member");
+  return apiRequest("/api/members/logout", { method: "POST" });
+},
 
   UNIVERSE.api = {
     /* ---- members ---- */
