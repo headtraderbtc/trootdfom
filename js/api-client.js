@@ -8,16 +8,23 @@
 
   UNIVERSE.API_BASE = "https://trotdfm-backend-production.up.railway.app"; // <-- set this after deploying
 
-  async function apiRequest(path, options) {
+async function apiRequest(path, options) {
     options = options || {};
-    options.credentials = "include"; // sends/receives the session cookie
     options.headers = Object.assign(
       { "Content-Type": "application/json" },
       options.headers || {}
     );
+
+    // attach token from localStorage if present
+    var token = localStorage.getItem("trotdfm_token");
+    if (token) {
+      options.headers["Authorization"] = "Bearer " + token;
+    }
+
     if (options.body && typeof options.body !== "string") {
       options.body = JSON.stringify(options.body);
     }
+
     var res = await fetch(UNIVERSE.API_BASE + path, options);
     var data = null;
     try { data = await res.json(); } catch (e) {}
