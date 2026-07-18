@@ -6,7 +6,7 @@
 
 (function(UNIVERSE) {
 
-  UNIVERSE.API_BASE = "https://trotdfm-backend-production.up.railway.app/"; // <-- set this after deploying
+  UNIVERSE.API_BASE = "https://trotdfm-backend-production.up.railway.app"; // <-- set this after deploying
 
   async function apiRequest(path, options) {
     options = options || {};
